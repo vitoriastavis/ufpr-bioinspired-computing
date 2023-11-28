@@ -174,7 +174,8 @@ def run_tests(inertia, cognitive, social, max_iter):
                 f1_best_g, pos_best_g = maximize(cost_function, initial_pos, bounds,
                                                  n_particles, n_dimensions, max_iter,
                                                  w, c1, c2, verbose=True)
-                print(f'w={w}, c1={c1}, c2={c2} | f1 = {f1_best_g})
+                
+                print(f'w={w}, c1={c1}, c2={c2} | f1 = {f1_best_g}')
 
                 results.append([w, c1, c2, f1_best_g, pos_best_g])
                 
