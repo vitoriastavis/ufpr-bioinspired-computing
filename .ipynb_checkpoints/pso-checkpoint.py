@@ -213,7 +213,7 @@ if __name__ == '__main__':
     columns_names = ["w", "c1", "c2", "f1_best_g", "pos_best_g"]
     results_df = pd.DataFrame(results, columns=columns_names)
     results_df.index.name = 'teste'
-    results_df.index = [list(results_df.index)[i]+1 for i in list(results_df.index)]
+    results_df.index = [i+1 for i in list(results_df.index)]
 
     results_df.to_csv('results.csv', index=True, header=True)
 
