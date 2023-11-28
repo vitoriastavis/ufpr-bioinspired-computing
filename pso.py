@@ -136,7 +136,7 @@ def maximize(cost_function, initial_pos, bounds, n_particles,
     # begin optimization loop
     i = 0
     while i < maxiter:
-        if verbose: print(f'iter: {i}, best f1-score: {f1_best_g:10.4f}')
+        if verbose: print(f'iter: {i}, best f1-score: {f1_best_g:10.6f}')
 
         # cycle through particles in swarm and evaluate fitness
         for j in range(0, n_particles):
@@ -175,7 +175,7 @@ def run_tests(inertia, cognitive, social, max_iter):
                                                  n_particles, n_dimensions, max_iter,
                                                  w, c1, c2, verbose=True)
                 
-                print(f'w={w}, c1={c1}, c2={c2} | f1 = {f1_best_g}')
+                print(f'\t\tw={w}, c1={c1}, c2={c2} | f1 = {f1_best_g}')
 
                 results.append([w, c1, c2, f1_best_g, pos_best_g])
                 
@@ -193,18 +193,18 @@ if __name__ == '__main__':
     df_test = pd.read_csv(sys.argv[2], index_col=0)
     
     # Initialize number of particles
-    n_particles = 2
+    n_particles = 50
     # Initialize dimensions, i.e. number of features per particle
-    n_dimensions = 2   
+    n_dimensions = 20  
     
     # Get initial position and bounds for each position
     initial_pos, bounds = set_pso(n_dimensions, n_particles)        
 
     # Set PSO parameters
-    inertia = [0.1, 0.5, 1]
-    cognitive = [0, 2, 4]
+    inertias = [0.1, 0.5, 1]
     social = [0, 2, 4]
-    max_iter = 50
+    cognitive = [0, 2, 4]
+    max_iter = 70
     
     # Run tests for each parameter
     results = run_tests(inertia, cognitive, social, max_iter)
@@ -212,7 +212,6 @@ if __name__ == '__main__':
     # Save results
     columns_names = ["w", "c1", "c2", "f1_best_g", "pos_best_g"]
     results_df = pd.DataFrame(results, columns=columns_names)
-    results_df.index.name = 'iteration'
 
     results_df.to_csv('results.csv', index=True, header=True)
 
