@@ -6,6 +6,7 @@ from sklearn import svm
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 import csv
+import time
 
 global df_train, df_test
 
@@ -156,13 +157,8 @@ def maximize(cost_function, initial_pos, bounds, n_particles,
 
     return f1_best_g, pos_best_g
 
-def run_tests(inertia, cognitive, social, max_iter):
-    
-    # Initialize number of particles
-    n_particles = 50
-    # Initialize dimensions, i.e. number of features per particle
-    n_dimensions = 20 
-    
+def run_tests(inertia, cognitive, social, max_iter, n_particles, n_dimensions):
+      
     # available features (removing the label)
     max_feature_idx = len(df_train.columns)-1
     
@@ -173,6 +169,7 @@ def run_tests(inertia, cognitive, social, max_iter):
     # 0 is the id for the first feature,
     # and max_feature_id is the id for the last feature
     bounds = [(0, max_feature_idx-1)]*n_dimensions
+    # print(bounds)
     
     results = []
 
@@ -180,21 +177,22 @@ def run_tests(inertia, cognitive, social, max_iter):
         for c1 in cognitive:
             for c2 in social:
                 
-                print(f'\t\tParametros w={w}, c1={c1}, c2={c2} ')   
+                print(f'\t\tParameters w={w}, c1={c1}, c2={c2} ')   
                 
+                start = time.time()
                 initial_pos = set_initial_positions(n_dimensions, n_particles, feature_idxs)
-                
-                try:
                     
-                    f1_best_g, pos_best_g = maximize(cost_function, initial_pos, bounds,
-                                                     n_particles, n_dimensions, max_iter,
-                                                     w, c1, c2, verbose=True)
+                f1_best_g, pos_best_g = maximize(cost_function, initial_pos, bounds,
+                                                 n_particles, n_dimensions, max_iter,
+                                                 w, c1, c2, verbose=True)
 
-                    print(f'\t\tw={w}, c1={c1}, c2={c2} | f1 = {f1_best_g}')
-                    results.append([w, c1, c2, f1_best_g, pos_best_g])
-                    
-                except:
-                    print('timeout')
+                total = time.time() - start 
+                total = round(total/60, 2)
+                
+                print(f'\t\tw={w}, c1={c1}, c2={c2} | f1 = {f1_best_g}')
+                
+                results.append([w, c1, c2, round(f1_best_g, 4), pos_best_g, total])
+
                 
     return results
 
@@ -214,17 +212,22 @@ if __name__ == '__main__':
     social = [0, 2, 4]
     cognitive = [0, 2, 4]
     max_iter = 50
+
+    # Number of particles
+    n_particles = 50
+    # Dimensions, i.e. number of features per particle
+    n_dimensions = 20
     
     # Run tests for each parameter
-    results = run_tests(inertia, cognitive, social, max_iter)
+    results = run_tests(inertia, cognitive, social, max_iter, n_particles, n_dimensions)
 
     # Save results
-    columns_names = ["w", "c1", "c2", "f1_best_g", "pos_best_g"]
+    columns_names = ["w", "c1", "c2", "f1_best_g", "pos_best_g", "time (min)"]
     results_df = pd.DataFrame(results, columns=columns_names)
-    results_df.index.name = 'teste'
+    results_df.index.name = 'test'
     results_df.index = [i+1 for i in list(results_df.index)]
 
-    results_df.to_csv('results_aug.csv', index=True, header=True)
+    results_df.to_csv('results.csv', index=True, header=True)
 
 
 
