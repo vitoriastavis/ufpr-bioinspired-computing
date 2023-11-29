@@ -25,15 +25,12 @@ def cost_function(features, df_train, df_test):
 
     return poly_f1
 
-def set_pso(n_dimensions, n_particles):
-    
-    # numero total de features disponiveis
-    max_feature_idx = len(df_train.columns) -1
-    feature_idxs = list(range(0, max_feature_idx, 1))
-  
+def set_initial_positions(n_dimensions, n_particles, feature_idxs):
+                 
     # initial particles position
     # since we can't use the same feature repeated,
-    # the initial position of every particle is a n_dimensions array with a random and unique combination of features
+    # the initial position of every particle is a n_dimensions
+    # array with a random and unique combination of features
     initial_pos = []
 
     i = 0
@@ -49,13 +46,8 @@ def set_pso(n_dimensions, n_particles):
         if not equal:
             initial_pos.append(list_sample)
             i += 1
-
-    # min and max values for the features
-    # 0 is the id for the first feature,
-    # and max_feature_id is the id for the last feature
-    bounds = [(0, max_feature_idx-1)]*n_dimensions
     
-    return initial_pos, bounds
+    return initial_pos
 
 class Particle:
     def __init__(self, initial_pos, i):
@@ -166,45 +158,62 @@ def maximize(cost_function, initial_pos, bounds, n_particles,
 
 def run_tests(inertia, cognitive, social, max_iter):
     
+    # Initialize number of particles
+    n_particles = 50
+    # Initialize dimensions, i.e. number of features per particle
+    n_dimensions = 20 
+    
+    # available features (removing the label)
+    max_feature_idx = len(df_train.columns)-1
+    
+    # feature ids 
+    feature_idxs = list(range(0, max_feature_idx, 1))
+    
+    # min and max values for the features
+    # 0 is the id for the first feature,
+    # and max_feature_id is the id for the last feature
+    bounds = [(0, max_feature_idx-1)]*n_dimensions
+    
     results = []
 
     for w in inertia:
         for c1 in cognitive:
             for c2 in social:
-                f1_best_g, pos_best_g = maximize(cost_function, initial_pos, bounds,
-                                                 n_particles, n_dimensions, max_iter,
-                                                 w, c1, c2, verbose=True)
                 
-                print(f'\t\tw={w}, c1={c1}, c2={c2} | f1 = {f1_best_g}')
+                print(f'\t\tParametros w={w}, c1={c1}, c2={c2} ')   
+                
+                initial_pos = set_initial_positions(n_dimensions, n_particles, feature_idxs)
+                
+                try:
+                    
+                    f1_best_g, pos_best_g = maximize(cost_function, initial_pos, bounds,
+                                                     n_particles, n_dimensions, max_iter,
+                                                     w, c1, c2, verbose=True)
 
-                results.append([w, c1, c2, f1_best_g, pos_best_g])
+                    print(f'\t\tw={w}, c1={c1}, c2={c2} | f1 = {f1_best_g}')
+                    results.append([w, c1, c2, f1_best_g, pos_best_g])
+                    
+                except:
+                    print('timeout')
                 
     return results
 
 if __name__ == '__main__':
     
     # Check if at least one argument is provided
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
         print("Usage: python script_name.py df_train_path df_test_path")
         sys.exit(1)
 
     # Load dataframes
     df_train = pd.read_csv(sys.argv[1], index_col=0)
-    df_test = pd.read_csv(sys.argv[2], index_col=0)
-    
-    # Initialize number of particles
-    n_particles = 50
-    # Initialize dimensions, i.e. number of features per particle
-    n_dimensions = 20  
-    
-    # Get initial position and bounds for each position
-    initial_pos, bounds = set_pso(n_dimensions, n_particles)        
+    df_test = pd.read_csv(sys.argv[2], index_col=0)   
 
     # Set PSO parameters
-    inertias = [0.1, 0.5, 1]
+    inertia = [0.1, 0.5, 1]
     social = [0, 2, 4]
     cognitive = [0, 2, 4]
-    max_iter = 70
+    max_iter = 50
     
     # Run tests for each parameter
     results = run_tests(inertia, cognitive, social, max_iter)
@@ -215,7 +224,7 @@ if __name__ == '__main__':
     results_df.index.name = 'teste'
     results_df.index = [i+1 for i in list(results_df.index)]
 
-    results_df.to_csv('results.csv', index=True, header=True)
+    results_df.to_csv('results_aug.csv', index=True, header=True)
 
 
 
